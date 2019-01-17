@@ -20,6 +20,7 @@ if (!isset($_SESSION['access_token']) || $_SESSION['access_token'] == "") {
     <script src="https://cdn.jsdelivr.net/npm/vue@2.5.21/dist/vue.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@7.33.1/dist/sweetalert2.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-loading-overlay@2.1.6/dist/loadingoverlay.min.js" charset="utf-8"></script>
 </head>
 <body class="bg-primary" >
     <div id="app">
@@ -220,9 +221,17 @@ if (!isset($_SESSION['access_token']) || $_SESSION['access_token'] == "") {
       data: {
         percent:0,
         messagepercent:"",
-        disabledbtn :""
+        loading :'hide'
       },
       methods:{
+        loadings:function(){
+          console.log(this.loading);
+          $.LoadingOverlay(this.loading, {
+          image       : "",
+          fontawesome : "fa fa-cog fa-spin",
+          imageColor      : "#ffcc00"
+        });
+      },
         upload: function(){
           var _this = this;
           var filek = document.getElementById('filekarya');
@@ -243,11 +252,13 @@ if (!isset($_SESSION['access_token']) || $_SESSION['access_token'] == "") {
           axios.post("<?=base_url()?>home/uploadfilekarya",fd,{
             onUploadProgress:function(uploadEvent){
               _this.percent = Math.round((uploadEvent.loaded / uploadEvent.total)*100);
-              app.disabledbtn = 'desabled'
+              app.loading = "show"
+              app.loadings()
             }
           }).then(function(res){
             if (res.data != "ok") {
-              app.disabledbtn = ''
+              app.loading = "hide"
+              app.loadings()
 
                 swal({
                   title: "Sorry",
@@ -255,7 +266,8 @@ if (!isset($_SESSION['access_token']) || $_SESSION['access_token'] == "") {
                     type: "error"
                   });
             }else {
-              app.disabledbtn = ''
+              app.loading = "hide"
+              app.loadings()
               swal({
                 title: "Congretulation",
                   text: "Your work has been uploaded successfully, wait for confirmation from the admin",
@@ -328,22 +340,25 @@ if (!isset($_SESSION['access_token']) || $_SESSION['access_token'] == "") {
         buttonText: 'Load More',
         posts: '',
         filter:'',
-        searchdata:''
+        searchdata:'',
+        loading:'hide'
       }
       },
       mounted:function (){
 
+
       },
       computed:{
-           getPostss(){
-             console.log(this.posts.filter);
-             // console.log(app.search);
-     //         var posts = this.posts.filter((post) => {
-     //   return post.judul_karya.toLowerCase().includes(this.filter.toLowerCase());
-     // });
-           }
       },
       methods: {
+        loadings:function(){
+          console.log(this.loading);
+          $.LoadingOverlay(this.loading, {
+            image             : "",
+            fontawesome       : "fas fa-circle-notch fa-spin",
+            fontawesomeColor  : "#007BFF"
+          });
+      },
         search:function(){
             var elmsearch = document.getElementById('search').value;
             var fds = new FormData()
@@ -351,9 +366,17 @@ if (!isset($_SESSION['access_token']) || $_SESSION['access_token'] == "") {
             axios.post('<?=base_url()?>home/loadPost/',fds,{
 
             }).then(function(res) {
+              app.loading = "show"
+              app.loadings()
+                setTimeout(function(){
+                  app.loading = "hide"
+                  app.loadings()
+                }, 1000);
                 app.searchdata = res
                 app.posts = res.data
-                console.log(app.posts);
+                app.row = 2
+                app.isFinished = false
+                app.buttonText = "Load More.";
                 this.getPosts
             });
         },
@@ -376,7 +399,6 @@ if (!isset($_SESSION['access_token']) || $_SESSION['access_token'] == "") {
               var res = response
             }
 
-            console.log(app.searchdata);
              if(res.data !=''){
 
                // Update rowperpage
@@ -418,6 +440,7 @@ if (!isset($_SESSION['access_token']) || $_SESSION['access_token'] == "") {
        },
        created: function(){
           this.getPosts();
+          this.loadings();
        }
 
     })

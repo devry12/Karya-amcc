@@ -27,6 +27,7 @@ class PostModel extends CI_Model {
     $this->db->select("*");
     $this->db->from("amcc_site.karya");
     $this->db->join('amcc_member.members', 'amcc_member.members.nim = karya.id_member');
+    $this->db->where('status','setuju');
     $this->db->order_by("karya.created_at", "DESC");
     $this->db->like('judul_karya', $search);
     // $this->db->limit($row);

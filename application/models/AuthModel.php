@@ -22,5 +22,26 @@ public function login()
   }
 }
 
+public function loginAdmin()
+{
+// die($this->input->post('nim'));
+  $this->db->select('*');
+  $this->db->from('backend_users');
+  $this->db->where('email',$this->input->post('email'));
+  $query = $this->db->get();
+  $result = $query->result_array();
+  $row    = $query->num_rows();
+  if ($row == 1) {
+  if (password_verify($this->input->post('password'),$result[0]['password'])) {
+    $_SESSION['admin'] = $result[0]['login'];
+    return "berhasil";
+  }else {
+    return "gagal";
+  }
+}else {
+  return "gagal";
+}
+}
+
 
 }
