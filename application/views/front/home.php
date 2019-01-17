@@ -57,9 +57,9 @@ if (!isset($_SESSION['access_token']) || $_SESSION['access_token'] == "") {
 
       <div class="col">
             <div class="input-group">
-                <input type="text" class="form-control" placeholder="Search" v-model="filter" id="search">
+                <input type="text" class="form-control" placeholder="Search" id="search">
                 <div class="input-group-append">
-                    <button  type="button" class="input-group-text" id="basic-addon2">
+                    <button  type="button" @click="search()" class="input-group-text" id="basic-addon2">
                         <span class="fa fa-search"></span>
                     </button>
                 </div>
@@ -78,7 +78,7 @@ if (!isset($_SESSION['access_token']) || $_SESSION['access_token'] == "") {
 
         <div class="row mt-body gutters" >
           <div class="row">
-            <div class="col-sm-6 mt-5" v-if="index < row " v-for="(post,index) in posts" track-by="index">
+            <div class="col-sm-6 mt-5" v-if="index < row "  v-for="(post,index) in posts" track-by="index">
                 <div class="card position-relative">
                     <img class="card-img-top" v-bind:src="post.img_karya" alt="Card image cap">
                     <div class="card-body">
@@ -327,7 +327,8 @@ if (!isset($_SESSION['access_token']) || $_SESSION['access_token'] == "") {
         rowperpage: 2,
         buttonText: 'Load More',
         posts: '',
-        filter:''
+        filter:'',
+        searchdata:''
       }
       },
       mounted:function (){
@@ -343,6 +344,19 @@ if (!isset($_SESSION['access_token']) || $_SESSION['access_token'] == "") {
            }
       },
       methods: {
+        search:function(){
+            var elmsearch = document.getElementById('search').value;
+            var fds = new FormData()
+            fds.set('search',elmsearch)
+            axios.post('<?=base_url()?>home/loadPost/',fds,{
+
+            }).then(function(res) {
+                app.searchdata = res
+                app.posts = res.data
+                console.log(app.posts);
+                this.getPosts
+            });
+        },
         loginempty: function(){
                   swal({
                     title: "Sorry",
@@ -355,7 +369,15 @@ if (!isset($_SESSION['access_token']) || $_SESSION['access_token'] == "") {
 
           })
           .then(function (response) {
-             if(response.data !=''){
+
+            if (app.searchdata != "") {
+              var res = app.searchdata
+            }else {
+              var res = response
+            }
+
+            console.log(app.searchdata);
+             if(res.data !=''){
 
                // Update rowperpage
 
@@ -364,7 +386,7 @@ if (!isset($_SESSION['access_token']) || $_SESSION['access_token'] == "") {
                }else {
                  app.row+=app.rowperpage;
                  var len = length+2;
-                 if (app.row > response.data.length-1) {
+                 if (app.row > res.data.length-1) {
                    app.buttonText = "No more Creation avaiable.";
                    isFinished = true
 
@@ -379,12 +401,12 @@ if (!isset($_SESSION['access_token']) || $_SESSION['access_token'] == "") {
 
                     // Loop on data and push in posts
                     for (let i = len; i < postlength; i++){
-                       app.posts.push(response.data[i]);
+                       // app.posts.push(response.data[i]);
                        postlength+=2
                     }
                  },500);
                }else{
-                  app.posts = response.data;
+                  app.posts = res.data;
                }
 
              }else{
