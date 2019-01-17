@@ -108,22 +108,32 @@ public function oauth2callback(){
 
 public function loadPost()
 {
-	$data = $this->PostModel->loadPost();
-	foreach ($data as $item ) {
-		$response_arr[] = array(
-		'id_karya'=>$item['id_karya'],
-		'judul_karya'=>$item['judul_karya'],
-		'img_karya'=>$item['img_karya'],
-		'deskipsi_karya'=>$item['deskipsi_karya'],
-		'link_karya'=>$item['link_karya'],
-		'file_karya'=>$item['file_karya'],
-		'id_member'=>$item['id_member'],
-		'created_at'=>$item['created_at'],
-		'image_profile'=>"http://www.amikom.ac.id/public/fotomhs/20".substr($item['id_member'],0,2)."/".str_replace(".","_",$item['id_member']).".jpg",
-	);
-
+	$search = $this->input->post('search');
+	if ($search == null) {
+		$search = "";
 	}
-	echo json_encode($response_arr);
+	$data = $this->PostModel->loadPost($search);
+	if ($data != null) {
+		foreach ($data as $item ) {
+			$response_arr[] = array(
+			'id_karya'			=>$item['id_karya'],
+			'judul_karya'		=>$item['judul_karya'],
+			'img_karya'			=>"storage/thumbnail-karya/".$item['img_karya'],
+			'deskipsi_karya'=>$item['deskipsi_karya'],
+			'link_karya'		=>$item['link_karya'],
+			'file_karya'		=>$item['file_karya'],
+			'id_member'			=>$item['id_member'],
+			'created_at'		=>$item['created_at'],
+			'name'					=>$item['name'],
+			'image_profile'	=>"http://www.amikom.ac.id/public/fotomhs/20".substr($item['id_member'],0,2)."/".str_replace(".","_",$item['id_member']).".jpg",
+		);
+
+		}
+		echo json_encode($response_arr);
+	}else {
+		echo "";
+	}
+
 	exit;
 }
 

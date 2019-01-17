@@ -19,7 +19,7 @@ if (!isset($_SESSION['access_token']) || $_SESSION['access_token'] == "") {
     <script src="<?=base_url()?>assets/theme1/front/js/jquery.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.5.21/dist/vue.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@7.33.1/dist/sweetalert2.all.min.js"></script>
 </head>
 <body class="bg-primary" >
     <div id="app">
@@ -49,60 +49,57 @@ if (!isset($_SESSION['access_token']) || $_SESSION['access_token'] == "") {
         <?php endif; ?>
     </header>
 
-    <section class="body">
+    <section class="body" id="loadPost">
         <div class="display-4 text-center text-white mb-5">
            Hai, Selamat datang (>_<)
         </div>
         <div class="row">
 
-      <div class="col-sm-11">
-        <form action="">
+      <div class="col">
             <div class="input-group">
-                <input type="text" class="form-control" placeholder="Search" name="search">
+                <input type="text" class="form-control" placeholder="Search" v-model="filter" id="search">
                 <div class="input-group-append">
-                    <button type="submit" class="input-group-text" id="basic-addon2">
+                    <button  type="button" class="input-group-text" id="basic-addon2">
                         <span class="fa fa-search"></span>
                     </button>
                 </div>
             </div>
-        </form>
       </div>
       <?php if (isset($_SESSION['nim'])): ?>
         <div class="col-sm-1">
           <button type="button" data-toggle="modal" data-target="#uploadkarya"  class="btn btn-success">Upload Karya</button>
         </div>
       <?php else: ?>
-        <div class="col-sm-1" id="errorlogin">
+        <div class="col-sm-1">
           <button type="button" @click='loginempty'  class="btn btn-success">Upload Karya</button>
         </div>
       <?php endif; ?>
       </div>
 
-        <div class="row mt-body gutters" id="loadPost">
+        <div class="row mt-body gutters" >
           <div class="row">
-            <div class="col-sm-6 mt-5" v-for='post in posts'>
+            <div class="col-sm-6 mt-5" v-if="index < row " v-for="(post,index) in posts" track-by="index">
                 <div class="card position-relative">
-                    <img class="card-img-top" src="<?=base_url()?>assets/theme1/front/img/eberhard-grossgasteiger-382463-unsplash.jpg" alt="Card image cap">
+                    <img class="card-img-top" v-bind:src="post.img_karya" alt="Card image cap">
                     <div class="card-body">
                         <div class="position-absolute img-user">
-                            <img src='' width="60px" alt="" class="rounded-circle">
+                            <img v-bind:src="post.image_profile" width="60px" alt="" class="rounded-circle">
                         </div>
                         <h5 class="card-title h1 mt-3" v-cloak>{{ post.judul_karya }}</h5>
                         <p class="text-secondary">
                             <div class="btn btn-white text-secondary">
                                 <span class="fa fa-user"></span>
                             </div>
-                            {{ post.id_member }}
+                            {{ post.name }}
                         </p>
-                        <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content. </p>
-                        <button type="button" class="btn btn-primary"><i class="fab fa-readme"></i></button>
+                        <p class="card-text">{{post.deskipsi_karya}}</p>
 
-                        <a href="">
+                        <a :href="post.link_karya" target="_blank">
                             <div class="btn btn-primary" style="margin-left: 12px;">
                                 <span class="fa fa-external-link-alt"></span>
                             </div>
                         </a>
-                        <a href="">
+                        <a :href="post.file_karya" target="_blank">
                             <div class="btn btn-primary" style="margin-left: 12px;">
                                 <span class="fa fa-download"></span>
                             </div>
@@ -113,7 +110,7 @@ if (!isset($_SESSION['access_token']) || $_SESSION['access_token'] == "") {
             </div>
           </div>
 
-        <button v-bind:class="[isFinished ? 'finish' : 'load-more']" @click='getPosts()' v-cloak class="btn btn-outline-light w-100 mt-5">
+        <button  @click='getPosts()'v-cloak class=" btn btn-outline-light w-100 mt-5">
             {{ buttonText }}
         </button>
     </section>
@@ -223,6 +220,7 @@ if (!isset($_SESSION['access_token']) || $_SESSION['access_token'] == "") {
       data: {
         percent:0,
         messagepercent:"",
+        disabledbtn :""
       },
       methods:{
         upload: function(){
@@ -245,20 +243,23 @@ if (!isset($_SESSION['access_token']) || $_SESSION['access_token'] == "") {
           axios.post("<?=base_url()?>home/uploadfilekarya",fd,{
             onUploadProgress:function(uploadEvent){
               _this.percent = Math.round((uploadEvent.loaded / uploadEvent.total)*100);
-
+              app.disabledbtn = 'desabled'
             }
           }).then(function(res){
             if (res.data != "ok") {
+              app.disabledbtn = ''
+
                 swal({
                   title: "Sorry",
                     text: res.data,
-                    icon: "error"
+                    type: "error"
                   });
             }else {
+              app.disabledbtn = ''
               swal({
                 title: "Congretulation",
                   text: "Your work has been uploaded successfully, wait for confirmation from the admin",
-                  icon: "success"
+                  type: "success"
                 }).then(function(){
                   window.location.replace("/");
                 });
@@ -296,7 +297,7 @@ if (!isset($_SESSION['access_token']) || $_SESSION['access_token'] == "") {
                   swal({
                     title: "Sorry",
                       text: "Nim dan password harus diisi",
-                      icon: "error"
+                      type: "error"
                     });
               }else if(res.data == 'berhasil'){
                   window.location.replace("/home/googleAuth");
@@ -304,7 +305,7 @@ if (!isset($_SESSION['access_token']) || $_SESSION['access_token'] == "") {
                 swal({
                   title: "Sorry",
                     text: "Nim atau password anda salah",
-                    icon: "error"
+                    type: "error"
                   });
               }
             }).catch(function(e){
@@ -317,55 +318,69 @@ if (!isset($_SESSION['access_token']) || $_SESSION['access_token'] == "") {
 
     <script type="text/javascript">
     var app = new Vue({
-      el: '#errorlogin',
-      methods:{
+      el: '#loadPost',
+      data: function() {
+        return{
+
+        isFinished: false,
+        row: 2,
+        rowperpage: 2,
+        buttonText: 'Load More',
+        posts: '',
+        filter:''
+      }
+      },
+      mounted:function (){
+
+      },
+      computed:{
+           getPostss(){
+             console.log(this.posts.filter);
+             // console.log(app.search);
+     //         var posts = this.posts.filter((post) => {
+     //   return post.judul_karya.toLowerCase().includes(this.filter.toLowerCase());
+     // });
+           }
+      },
+      methods: {
         loginempty: function(){
                   swal({
                     title: "Sorry",
                       text: "Anda harus login dulu sebelum upload karya",
-                      icon: "error"
+                      type: "error"
                     });
-    }
-  }
-  })
-
-    </script>
-
-    <script type="text/javascript">
-    var app = new Vue({
-      el: '#loadPost',
-      data: {
-        isFinished: false,
-        row: 0,
-        rowperpage: 2,
-        buttonText: 'Load More',
-        posts: ''
-      },
-      methods: {
+    },
         getPosts: function(){
-          var fd = new FormData()
-          fd.set('row',this.row)
-          fd.set('rowperpage',this.rowperpage)
-          console.log(fd);
-          axios.post('<?=base_url()?>home/loadPost',fd, {
+          axios.post('<?=base_url()?>home/loadPost/',{
 
           })
           .then(function (response) {
              if(response.data !=''){
 
                // Update rowperpage
-               app.row+=app.rowperpage;
 
-               var len = app.posts.length;
+               if (app.posts.length == 0) {
+                  var len = 2
+               }else {
+                 app.row+=app.rowperpage;
+                 var len = length+2;
+                 if (app.row > response.data.length-1) {
+                   app.buttonText = "No more Creation avaiable.";
+                   isFinished = true
 
-               if(len > 0){
+                 }
+               }
+
+               if(len < postlength){
+                 var postlength = 2
                  app.buttonText = "Loading ...";
                  setTimeout(function() {
                     app.buttonText = "Load More";
 
                     // Loop on data and push in posts
-                    for (let i = 0; i < response.data.length; i++){
+                    for (let i = len; i < postlength; i++){
                        app.posts.push(response.data[i]);
+                       postlength+=2
                     }
                  },500);
                }else{
@@ -373,7 +388,7 @@ if (!isset($_SESSION['access_token']) || $_SESSION['access_token'] == "") {
                }
 
              }else{
-               app.buttonText = "No more records avaiable.";
+               app.buttonText = "No more Creation avaiable.";
                app.isFinished = true;
              }
            });
@@ -382,6 +397,7 @@ if (!isset($_SESSION['access_token']) || $_SESSION['access_token'] == "") {
        created: function(){
           this.getPosts();
        }
+
     })
     </script>
 
